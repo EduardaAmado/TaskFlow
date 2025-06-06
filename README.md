@@ -42,20 +42,20 @@ taskflow/
 
 ## 🗄️ Database Setup
 
-1. Create a new database using MySQL or PostgreSQL.
+1. Create a new database using MySQL or PostgreSQL named db_taskflow.
 
 2. Run the migration script to create the necessary tables:
 
    **For MySQL:**
 
    ```bash
-   mysql -u your_user -p your_database < database/migrations.sql
+   mysql -u root -p db_taskflow < database/migrations.sql
    ```
 
    **For PostgreSQL:**
 
    ```bash
-   psql -U your_user -d your_database -f database/migrations.sql
+   psql -U root -d db_taskflow -f database/migrations.sql
    ```
 
 3. *(Optional)* Populate the database with sample data:
