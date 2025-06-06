@@ -1,5 +1,5 @@
 <?php
-require_once '../config/db_connect.php';
+require_once '../config/database.php';
 
 class User {
     private $db;
@@ -22,6 +22,25 @@ class User {
         } else {
             return false;
         }
+    }
+
+    public function login($email, $password) {
+        // Prepara a consulta
+        $stmt = $this->db->prepare("SELECT password FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $stmt->store_result();
+
+        if ($stmt->num_rows > 0) {
+            $stmt->bind_result($hashedPassword);
+            $stmt->fetch();
+
+            // Verifica a senha
+            if (password_verify($password, $hashedPassword)) {
+                return true; // Login bem-sucedido
+            }
+        }
+        return false; // Login falhou
     }
 }
 ?>
