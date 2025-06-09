@@ -1,71 +1,69 @@
 <?php
-// Start the session
-session_start();
-
-// Include database configuration
 require_once '../config/database.php';
 
-// Check if the form is submitted
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Get form data
-    $firstName = trim($_POST['firstName']);
-    $lastName = trim($_POST['lastName']);
-    $email = trim($_POST['email']);
-    $password = trim($_POST['password']);
-    $confirmPassword = trim($_POST['confirmPassword']);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Sanitize inputs
+    $firstName = trim($_POST['firstName'] ?? '');
+    $lastName = trim($_POST['lastName'] ?? '');
+    $email = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirmPassword = $_POST['confirmPassword'] ?? '';
 
-    // Initialize an array to hold error messages
+    // Combine first and last name to create username
+    $username = strtolower(preg_replace('/\s+/', '', $firstName . $lastName));
+
+    // Validate
     $errors = [];
 
-    // Validate input
-    if (empty($firstName) || empty($lastName) || empty($email) || empty($password) || empty($confirmPassword)) {
-        $errors[] = "All fields are required.";
-    }
-
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Invalid email format.";
-    }
-
-    if ($password !== $confirmPassword) {
-        $errors[] = "Passwords do not match.";
+        $errors[] = 'Invalid email format.';
     }
 
     if (strlen($password) < 8) {
-        $errors[] = "Password must be at least 8 characters long.";
+        $errors[] = 'Password must be at least 8 characters.';
     }
 
-    // If there are no errors, proceed to register the user
-    if (empty($errors)) {
-        // Hash the password
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-        // Prepare SQL statement
-        $sql = "INSERT INTO tb_users (username, password, email) VALUES (:username, :password, :email)";
-        // Create a prepared statement
-        if ($stmt = $pdo->prepare($sql)) {
-            // Bind parameters
-            $stmt->bindParam(':username', $firstName); // Use o nome de usuário correto
-            $stmt->bindParam(':password', $hashedPassword);
-            $stmt->bindParam(':email', $email);
-            // Execute the statement
-            if ($stmt->execute()) {
-                // Redirect to a success page or show a success message
-                $_SESSION['success'] = "Account created successfully!";
-                header("Location: ../public/success.php");
-                exit();
-            } else {
-                $errors[] = "Something went wrong. Please try again.";
-            }
-        } else {
-            $errors[] = "Failed to prepare the SQL statement.";
-        }
+    if ($password !== $confirmPassword) {
+        $errors[] = 'Passwords do not match.';
     }
 
-    // If there are errors, store them in the session and redirect back to the form
     if (!empty($errors)) {
-        $_SESSION['errors'] = $errors;
-        header("Location: ../public/register.php");
-        exit();
+        // In production, you would redirect back with errors
+        echo json_encode(['success' => false, 'errors' => $errors]);
+        exit;
+    }
+
+    // Hash password
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+    try {
+        $pdo = getDatabaseConnection();
+
+        // Check if email already exists
+        $stmt = $pdo->prepare("SELECT id FROM tb_users WHERE email = :email");
+        $stmt->execute(['email' => $email]);
+
+        if ($stmt->fetch()) {
+            echo json_encode(['success' => false, 'message' => 'Email already registered.']);
+            exit;
+        }
+
+        // Insert new user
+        $insertStmt = $pdo->prepare("
+            INSERT INTO tb_users (username, password, email)
+            VALUES (:username, :password, :email)
+        ");
+
+        $insertStmt->execute([
+            'username' => $username,
+            'password' => $hashedPassword,
+            'email' => $email
+        ]);
+
+        echo json_encode(['success' => true, 'message' => 'User registered successfully.']);
+        header("Location: ../../public/login.php");
+        exit;
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
     }
 }
-?>

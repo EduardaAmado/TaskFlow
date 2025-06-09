@@ -57,16 +57,16 @@
 
         <form id="registerForm" action="../app/controllers/RegisterController.php" method="POST" class="space-y-5">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <div>
+                <div>
                     <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                    <input type="text" id="firstName" name="firstName" required 
-                        class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-indigo-500 transition-colors" 
+                    <input type="text" id="firstName" name="firstName" required
+                        class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-indigo-500 transition-colors"
                         placeholder="First name">
                 </div>
                 <div>
                     <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                    <input type="text" id="lastName" name="lastName" required 
-                        class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-indigo-500 transition-colors" 
+                    <input type="text" id="lastName" name="lastName" required
+                        class="form-input w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:border-indigo-500 transition-colors"
                         placeholder="Last name">
                 </div>
 
@@ -141,7 +141,7 @@
                     </svg>
                 </div>
                 <div class="ml-3">
-                    <p class="text-sm">Account created successfully! This is a demo registration page.</p>
+                    <p class="text-sm">Account created successfully!</p>
                 </div>
             </div>
         </div>
@@ -149,7 +149,6 @@
 
     <script>
         document.getElementById('registerForm').addEventListener('submit', function (e) {
-            e.preventDefault();
 
             // Validate form
             let isValid = true;
