@@ -5,8 +5,7 @@ class Attachment {
     private $conn;
     
     public function __construct() {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+        $this->conn = getDatabaseConnection();
     }
     
     public function uploadFile($taskId, $file, $uploadedBy) {
@@ -36,7 +35,7 @@ class Attachment {
             // Mover arquivo para diretório de uploads
             if (move_uploaded_file($file['tmp_name'], $filePath)) {
                 // Salvar informações no banco de dados
-                $sql = "INSERT INTO task_attachments (task_id, filename, original_filename, file_path, file_size, mime_type, uploaded_by) 
+                $sql = "INSERT INTO tb_task_attachments (task_id, filename, original_filename, file_path, file_size, mime_type, uploaded_by) 
                         VALUES (?, ?, ?, ?, ?, ?, ?)";
                 $stmt = $this->conn->prepare($sql);
                 
@@ -60,8 +59,8 @@ class Attachment {
     
     public function getTaskAttachments($taskId) {
         $sql = "SELECT ta.*, u.username as uploaded_by_name 
-                FROM task_attachments ta 
-                JOIN users u ON ta.uploaded_by = u.id 
+                FROM tb_task_attachments ta 
+                JOIN tb_users u ON ta.uploaded_by = u.id 
                 WHERE ta.task_id = ? 
                 ORDER BY ta.uploaded_at DESC";
         $stmt = $this->conn->prepare($sql);
@@ -72,7 +71,7 @@ class Attachment {
     public function deleteAttachment($attachmentId, $userId) {
         try {
             // Buscar informações do arquivo
-            $sql = "SELECT * FROM task_attachments WHERE id = ? AND uploaded_by = ?";
+            $sql = "SELECT * FROM tb_task_attachments WHERE id = ? AND uploaded_by = ?";
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([$attachmentId, $userId]);
             $attachment = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -85,7 +84,7 @@ class Attachment {
                 }
                 
                 // Deletar registro do banco
-                $sql = "DELETE FROM task_attachments WHERE id = ?";
+                $sql = "DELETE FROM tb_task_attachments WHERE id = ?";
                 $stmt = $this->conn->prepare($sql);
                 return $stmt->execute([$attachmentId]);
             }
@@ -98,7 +97,7 @@ class Attachment {
     }
     
     public function getAttachmentById($attachmentId) {
-        $sql = "SELECT * FROM task_attachments WHERE id = ?";
+        $sql = "SELECT * FROM tb_task_attachments WHERE id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$attachmentId]);
         return $stmt->fetch(PDO::FETCH_ASSOC);

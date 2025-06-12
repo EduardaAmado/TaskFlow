@@ -5,13 +5,12 @@ class UserPreferences {
     private $conn;
     
     public function __construct() {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+        $this->conn = getDatabaseConnection();
     }
     
     public function getUserPreferences($userId) {
         // Verificar se já existem preferências
-        $sql = "SELECT * FROM user_preferences WHERE user_id = ?";
+        $sql = "SELECT * FROM tb_user_preferences WHERE user_id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$userId]);
         $preferences = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -26,7 +25,7 @@ class UserPreferences {
     }
     
     public function createDefaultPreferences($userId) {
-        $sql = "INSERT INTO user_preferences (
+        $sql = "INSERT INTO tb_user_preferences (
                     user_id, 
                     theme, 
                     notifications_enabled, 
@@ -74,7 +73,7 @@ class UserPreferences {
             $language = $preferences['language'] ?? $currentPrefs['language'];
             $timezone = $preferences['timezone'] ?? $currentPrefs['timezone'];
             
-            $sql = "UPDATE user_preferences 
+            $sql = "UPDATE tb_user_preferences 
                     SET theme = ?,
                         notifications_enabled = ?,
                         email_notifications = ?,

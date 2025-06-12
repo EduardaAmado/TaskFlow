@@ -31,9 +31,7 @@ class Project {
     public function getAllUserProjects($userId) {
         $sql = "SELECT p.*, 
                 COUNT(t.id) as total_tasks,
-                SUM(CASE WHEN t.completed = 1 THEN 1 ELSE 0 END) as completed_tasks,
-                SUM(t.estimated_hours) as total_estimated_hours,
-                SUM(t.actual_hours) as total_actual_hours
+                SUM(CASE WHEN t.completed = 1 THEN 1 ELSE 0 END) as completed_tasks
                 FROM {$this->table} p
                 LEFT JOIN tb_tasks t ON p.id = t.project_id
                 WHERE p.user_id = :user_id
@@ -114,9 +112,7 @@ class Project {
     public function getProgress($projectId, $userId) {
         $sql = "SELECT 
                 COUNT(*) as total_tasks,
-                SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed_tasks,
-                SUM(estimated_hours) as total_estimated_hours,
-                SUM(actual_hours) as total_actual_hours
+                SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed_tasks
                 FROM tb_tasks 
                 WHERE project_id = :project_id";
         
@@ -167,9 +163,7 @@ class Project {
                 'start' => $task['start_date'],
                 'end' => $task['due_date'],
                 'progress' => $task['completed'] ? 100 : 0,
-                'dependencies' => '', // Could be added in future
-                'estimated_hours' => $task['estimated_hours'],
-                'actual_hours' => $task['actual_hours']
+                'dependencies' => '' // Could be added in future
             ];
         }
 

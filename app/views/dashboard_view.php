@@ -26,6 +26,7 @@ $tasks = $taskModel->getAllUserTasks($_SESSION['user_id'], $filter === 'all' ? n
 foreach ($tasks as &$task) {
     $task['comment_count'] = $commentModel->getCommentCount($task['id']);
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -205,7 +206,7 @@ foreach ($tasks as &$task) {
                                         </div>
                                         <div class="flex items-center">
                                             <i class="fas fa-comments mr-2"></i>
-                                            <span class="comment-count"><?php echo $task['comment_count']; ?></span>
+        <span class="comment-count"><?php echo isset($task['comment_count']) ? $task['comment_count'] : 0; ?></span>
                                             <button class="view-comments-btn ml-2 hover:text-white" data-task-id="<?php echo $task['id']; ?>">
                                                 Ver comentários
                                             </button>

@@ -154,6 +154,30 @@ TaskFlow/
 #### Busca
 Use a barra de pesquisa no topo para encontrar tarefas por título, descrição ou prioridade.
 
+## 🗄️ Esquema do Banco de Dados
+
+### Tabelas Principais
+- `tb_users` - Contas de usuário e autenticação
+- `tb_tasks` - Gerenciamento de tarefas com prioridades e datas de vencimento
+- `tb_comments` - Comentários de tarefas e colaboração
+- `tb_tokens` - Tokens de redefinição de senha
+
+### Gerenciamento de Projetos
+- `tb_projects` - Organização e gerenciamento de projetos
+- Relacionamentos tarefa-projeto para melhor organização
+
+### Recursos Avançados
+- `tb_task_attachments` - Upload de arquivos para tarefas
+- `tb_task_dependencies` - Gerenciamento de dependências de tarefas
+- `tb_badges` - Sistema de conquistas
+- `tb_user_badges` - Rastreamento de conquistas do usuário
+- `tb_user_statistics` - Análises de produtividade
+- `tb_user_preferences` - Configurações de personalização do usuário
+- `tb_activity_log` - Rastreamento de atividades do usuário
+
+### Convenção de Nomenclatura
+Todas as tabelas seguem o padrão `tb_` como prefixo para melhor organização e evitar conflitos com palavras reservadas do MySQL.
+
 ## 🔧 API Endpoints
 
 ### Tarefas

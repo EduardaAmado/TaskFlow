@@ -5,12 +5,11 @@ class TaskAdvanced {
     private $conn;
     
     public function __construct() {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+        $this->conn = getDatabaseConnection();
     }
     
     public function createTask($userId, $title, $description, $dueDate, $priority, $projectId = null, $isRecurring = false, $recurrenceType = null, $recurrenceInterval = 1, $recurrenceEndDate = null) {
-        $sql = "INSERT INTO tasks (user_id, title, description, due_date, priority, project_id, is_recurring, recurrence_type, recurrence_interval, recurrence_end_date) 
+        $sql = "INSERT INTO tb_tasks (user_id, title, description, due_date, priority, project_id, is_recurring, recurrence_type, recurrence_interval, recurrence_end_date) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $this->conn->prepare($sql);
         $result = $stmt->execute([$userId, $title, $description, $dueDate, $priority, $projectId, $isRecurring, $recurrenceType, $recurrenceInterval, $recurrenceEndDate]);
@@ -24,8 +23,8 @@ class TaskAdvanced {
     }
     
     public function getAllUserTasks($userId, $filter = null) {
-        $sql = "SELECT t.*, p.name as project_name FROM tasks t 
-                LEFT JOIN projects p ON t.project_id = p.id 
+        $sql = "SELECT t.*, p.name as project_name FROM tb_tasks t 
+                LEFT JOIN tb_projects p ON t.project_id = p.id 
                 WHERE t.user_id = ?";
         $params = [$userId];
         
@@ -56,8 +55,8 @@ class TaskAdvanced {
     }
     
     public function getTaskById($taskId) {
-        $sql = "SELECT t.*, p.name as project_name FROM tasks t 
-                LEFT JOIN projects p ON t.project_id = p.id 
+        $sql = "SELECT t.*, p.name as project_name FROM tb_tasks t 
+                LEFT JOIN tb_projects p ON t.project_id = p.id 
                 WHERE t.id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$taskId]);
@@ -65,20 +64,20 @@ class TaskAdvanced {
     }
     
     public function updateTask($taskId, $title, $description, $dueDate, $priority, $projectId = null) {
-        $sql = "UPDATE tasks SET title = ?, description = ?, due_date = ?, priority = ?, project_id = ? WHERE id = ?";
+        $sql = "UPDATE tb_tasks SET title = ?, description = ?, due_date = ?, priority = ?, project_id = ? WHERE id = ?";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([$title, $description, $dueDate, $priority, $projectId, $taskId]);
     }
     
     public function deleteTask($taskId) {
         // Deletar também tarefas recorrentes filhas
-        $sql = "DELETE FROM tasks WHERE id = ? OR parent_recurring_task_id = ?";
+        $sql = "DELETE FROM tb_tasks WHERE id = ? OR parent_recurring_task_id = ?";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([$taskId, $taskId]);
     }
     
     public function toggleTaskComplete($taskId) {
-        $sql = "UPDATE tasks SET completed = NOT completed, completed_at = CASE WHEN completed = 0 THEN NOW() ELSE NULL END WHERE id = ?";
+        $sql = "UPDATE tb_tasks SET completed = NOT completed, completed_at = CASE WHEN completed = 0 THEN NOW() ELSE NULL END WHERE id = ?";
         $stmt = $this->conn->prepare($sql);
         $result = $stmt->execute([$taskId]);
         
@@ -102,7 +101,7 @@ class TaskAdvanced {
         }
         
         $placeholders = str_repeat('?,', count($taskIds) - 1) . '?';
-        $sql = "UPDATE tasks SET completed = 1, completed_at = NOW() 
+        $sql = "UPDATE tb_tasks SET completed = 1, completed_at = NOW() 
                 WHERE id IN ($placeholders) AND user_id = ?";
         
         $params = array_merge($taskIds, [$userId]);
@@ -120,7 +119,7 @@ class TaskAdvanced {
     }
     
     public function getProjectTasks($projectId) {
-        $sql = "SELECT * FROM tasks WHERE project_id = ? ORDER BY due_date ASC";
+        $sql = "SELECT * FROM tb_tasks WHERE project_id = ? ORDER BY due_date ASC";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$projectId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -135,7 +134,7 @@ class TaskAdvanced {
             $this->addRecurrenceInterval($currentDate, $recurrenceType, $recurrenceInterval);
             
             if ($currentDate <= $endDateTime) {
-                $sql = "INSERT INTO tasks (user_id, title, description, due_date, priority, project_id, parent_recurring_task_id) 
+                $sql = "INSERT INTO tb_tasks (user_id, title, description, due_date, priority, project_id, parent_recurring_task_id) 
                         VALUES (?, ?, ?, ?, ?, ?, ?)";
                 $stmt = $this->conn->prepare($sql);
                 $stmt->execute([
@@ -165,7 +164,7 @@ class TaskAdvanced {
             $nextDate = new DateTime($task['due_date']);
             $this->addRecurrenceInterval($nextDate, $parentTask['recurrence_type'], $parentTask['recurrence_interval']);
             
-            $sql = "INSERT INTO tasks (user_id, title, description, due_date, priority, project_id, parent_recurring_task_id) 
+            $sql = "INSERT INTO tb_tasks (user_id, title, description, due_date, priority, project_id, parent_recurring_task_id) 
                     VALUES (?, ?, ?, ?, ?, ?, ?)";
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([
@@ -199,21 +198,21 @@ class TaskAdvanced {
     
     // Métodos para dependências
     public function addTaskDependency($taskId, $dependsOnTaskId) {
-        $sql = "INSERT INTO task_dependencies (task_id, depends_on_task_id) VALUES (?, ?)";
+        $sql = "INSERT INTO tb_task_dependencies (task_id, depends_on_task_id) VALUES (?, ?)";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([$taskId, $dependsOnTaskId]);
     }
     
     public function removeTaskDependency($taskId, $dependsOnTaskId) {
-        $sql = "DELETE FROM task_dependencies WHERE task_id = ? AND depends_on_task_id = ?";
+        $sql = "DELETE FROM tb_task_dependencies WHERE task_id = ? AND depends_on_task_id = ?";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([$taskId, $dependsOnTaskId]);
     }
     
     public function getTaskDependencies($taskId) {
         $sql = "SELECT t.*, td.created_at as dependency_created 
-                FROM task_dependencies td
-                JOIN tasks t ON td.depends_on_task_id = t.id
+                FROM tb_task_dependencies td
+                JOIN tb_tasks t ON td.depends_on_task_id = t.id
                 WHERE td.task_id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$taskId]);
@@ -222,8 +221,8 @@ class TaskAdvanced {
     
     public function getDependentTasks($taskId) {
         $sql = "SELECT t.*, td.created_at as dependency_created 
-                FROM task_dependencies td
-                JOIN tasks t ON td.task_id = t.id
+                FROM tb_task_dependencies td
+                JOIN tb_tasks t ON td.task_id = t.id
                 WHERE td.depends_on_task_id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$taskId]);
@@ -231,8 +230,8 @@ class TaskAdvanced {
     }
     
     public function canCompleteTask($taskId) {
-        $sql = "SELECT COUNT(*) FROM task_dependencies td
-                JOIN tasks t ON td.depends_on_task_id = t.id
+        $sql = "SELECT COUNT(*) FROM tb_task_dependencies td
+                JOIN tb_tasks t ON td.depends_on_task_id = t.id
                 WHERE td.task_id = ? AND t.completed = 0";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$taskId]);
@@ -255,9 +254,9 @@ class TaskAdvanced {
                        GROUP_CONCAT(dt.title) as dependency_titles,
                        COUNT(td.depends_on_task_id) as dependency_count,
                        SUM(CASE WHEN dt.completed = 0 THEN 1 ELSE 0 END) as pending_dependencies
-                FROM tasks t
-                LEFT JOIN task_dependencies td ON t.id = td.task_id
-                LEFT JOIN tasks dt ON td.depends_on_task_id = dt.id
+                FROM tb_tasks t
+                LEFT JOIN tb_task_dependencies td ON t.id = td.task_id
+                LEFT JOIN tb_tasks dt ON td.depends_on_task_id = dt.id
                 WHERE t.user_id = ?
                 GROUP BY t.id
                 ORDER BY t.due_date ASC";

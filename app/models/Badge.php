@@ -5,12 +5,11 @@ class Badge {
     private $conn;
     
     public function __construct() {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+        $this->conn = getDatabaseConnection();
     }
     
     public function getAllBadges() {
-        $sql = "SELECT * FROM badges ORDER BY criteria_value ASC";
+        $sql = "SELECT * FROM tb_badges ORDER BY criteria_value ASC";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -18,8 +17,8 @@ class Badge {
     
     public function getUserBadges($userId) {
         $sql = "SELECT b.*, ub.earned_at 
-                FROM badges b 
-                JOIN user_badges ub ON b.id = ub.badge_id 
+                FROM tb_badges b 
+                JOIN tb_user_badges ub ON b.id = ub.badge_id 
                 WHERE ub.user_id = ? 
                 ORDER BY ub.earned_at DESC";
         $stmt = $this->conn->prepare($sql);
@@ -78,27 +77,27 @@ class Badge {
     }
     
     private function getBadgesByCriteria($criteriaType) {
-        $sql = "SELECT * FROM badges WHERE criteria_type = ? ORDER BY criteria_value ASC";
+        $sql = "SELECT * FROM tb_badges WHERE criteria_type = ? ORDER BY criteria_value ASC";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$criteriaType]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
     private function userHasBadge($userId, $badgeId) {
-        $sql = "SELECT COUNT(*) FROM user_badges WHERE user_id = ? AND badge_id = ?";
+        $sql = "SELECT COUNT(*) FROM tb_user_badges WHERE user_id = ? AND badge_id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$userId, $badgeId]);
         return $stmt->fetchColumn() > 0;
     }
     
     private function awardBadge($userId, $badgeId) {
-        $sql = "INSERT INTO user_badges (user_id, badge_id) VALUES (?, ?)";
+        $sql = "INSERT INTO tb_user_badges (user_id, badge_id) VALUES (?, ?)";
         $stmt = $this->conn->prepare($sql);
         return $stmt->execute([$userId, $badgeId]);
     }
     
     private function getCompletedTasksCount($userId) {
-        $sql = "SELECT COUNT(*) FROM tasks WHERE user_id = ? AND completed = 1";
+        $sql = "SELECT COUNT(*) FROM tb_tasks WHERE user_id = ? AND completed = 1";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$userId]);
         return $stmt->fetchColumn();
@@ -106,7 +105,7 @@ class Badge {
     
     private function getConsecutiveDaysStreak($userId) {
         $sql = "SELECT DATE(completed_at) as completion_date 
-                FROM tasks 
+                FROM tb_tasks 
                 WHERE user_id = ? AND completed = 1 AND completed_at IS NOT NULL
                 GROUP BY DATE(completed_at) 
                 ORDER BY completion_date DESC";
@@ -138,8 +137,8 @@ class Badge {
     
     private function getCompletedProjectsCount($userId) {
         $sql = "SELECT COUNT(DISTINCT p.id) 
-                FROM projects p 
-                JOIN tasks t ON p.id = t.project_id 
+                FROM tb_projects p 
+                JOIN tb_tasks t ON p.id = t.project_id 
                 WHERE p.user_id = ? 
                 GROUP BY p.id 
                 HAVING COUNT(t.id) = SUM(CASE WHEN t.completed = 1 THEN 1 ELSE 0 END)";
@@ -149,7 +148,7 @@ class Badge {
     }
     
     private function getCommentsCount($userId) {
-        $sql = "SELECT COUNT(*) FROM comments WHERE user_id = ?";
+        $sql = "SELECT COUNT(*) FROM tb_comments WHERE user_id = ?";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([$userId]);
         return $stmt->fetchColumn();
