@@ -1,69 +1,98 @@
 <?php
-require_once '../config/database.php';
+session_start();
+require_once __DIR__ . '/../models/User.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Sanitize inputs
-    $firstName = trim($_POST['firstName'] ?? '');
-    $lastName = trim($_POST['lastName'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-    $confirmPassword = $_POST['confirmPassword'] ?? '';
+class RegisterController {
+    private $userModel;
 
-    // Combine first and last name to create username
-    $username = strtolower(preg_replace('/\s+/', '', $firstName . $lastName));
-
-    // Validate
-    $errors = [];
-
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Invalid email format.';
+    public function __construct() {
+        $this->userModel = new User();
     }
 
-    if (strlen($password) < 8) {
-        $errors[] = 'Password must be at least 8 characters.';
-    }
+    public function register() {
+        $username = trim($_POST['username'] ?? '');
+        $email = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $confirmPassword = $_POST['confirm_password'] ?? '';
 
-    if ($password !== $confirmPassword) {
-        $errors[] = 'Passwords do not match.';
-    }
-
-    if (!empty($errors)) {
-        // In production, you would redirect back with errors
-        echo json_encode(['success' => false, 'errors' => $errors]);
-        exit;
-    }
-
-    // Hash password
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-    try {
-        $pdo = getDatabaseConnection();
-
-        // Check if email already exists
-        $stmt = $pdo->prepare("SELECT id FROM tb_users WHERE email = :email");
-        $stmt->execute(['email' => $email]);
-
-        if ($stmt->fetch()) {
-            echo json_encode(['success' => false, 'message' => 'Email already registered.']);
-            exit;
+        // Validate input
+        if (empty($username) || empty($email) || empty($password) || empty($confirmPassword)) {
+            $this->redirectWithError('register', 'Todos os campos são obrigatórios');
+            return;
         }
 
-        // Insert new user
-        $insertStmt = $pdo->prepare("
-            INSERT INTO tb_users (username, password, email)
-            VALUES (:username, :password, :email)
-        ");
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $this->redirectWithError('register', 'Email inválido');
+            return;
+        }
 
-        $insertStmt->execute([
+        // Validate username length
+        if (strlen($username) < 3 || strlen($username) > 50) {
+            $this->redirectWithError('register', 'Nome de usuário deve ter entre 3 e 50 caracteres');
+            return;
+        }
+
+        // Validate password length and complexity
+        if (strlen($password) < 6) {
+            $this->redirectWithError('register', 'Senha deve ter no mínimo 6 caracteres');
+            return;
+        }
+
+        // Check if passwords match
+        if ($password !== $confirmPassword) {
+            $this->redirectWithError('register', 'As senhas não coincidem');
+            return;
+        }
+
+        // Check if username exists
+        if ($this->userModel->usernameExists($username)) {
+            $this->redirectWithError('register', 'Nome de usuário já está em uso');
+            return;
+        }
+
+        // Check if email exists
+        if ($this->userModel->emailExists($email)) {
+            $this->redirectWithError('register', 'Email já está em uso');
+            return;
+        }
+
+        // Create user
+        $userData = [
             'username' => $username,
-            'password' => $hashedPassword,
-            'email' => $email
-        ]);
+            'email' => $email,
+            'password' => $password
+        ];
 
-        echo json_encode(['success' => true, 'message' => 'User registered successfully.']);
-        header("Location: ../../public/login.php");
-        exit;
-    } catch (PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+        if ($this->userModel->create($userData)) {
+            // Get the created user
+            $user = $this->userModel->findByEmail($email);
+            
+            // Set session variables
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['email'] = $user['email'];
+
+            // Redirect to dashboard
+            header('Location: ../../public/dashboard.php?message=welcome');
+            exit;
+        } else {
+            $this->redirectWithError('register', 'Erro ao criar conta. Tente novamente.');
+            return;
+        }
     }
+
+    private function redirectWithError($page, $error) {
+        header("Location: ../../public/$page.php?error=" . urlencode($error));
+        exit;
+    }
+}
+
+// Handle registration request
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new RegisterController();
+    $controller->register();
+} else {
+    header('Location: ../../public/register.php');
+    exit;
 }
