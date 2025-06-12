@@ -11,18 +11,20 @@ class Task {
 
     // Create new task
     public function create($data) {
-        $sql = "INSERT INTO {$this->table} (user_id, title, description, due_date, start_date, priority) 
-                VALUES (:user_id, :title, :description, :due_date, :start_date, :priority)";
+        $sql = "INSERT INTO {$this->table} (user_id, project_id, title, description, due_date, start_date, priority, estimated_hours) 
+                VALUES (:user_id, :project_id, :title, :description, :due_date, :start_date, :priority, :estimated_hours)";
         
         $stmt = $this->conn->prepare($sql);
         
         return $stmt->execute([
             ':user_id' => $data['user_id'],
+            ':project_id' => $data['project_id'] ?? null,
             ':title' => $data['title'],
             ':description' => $data['description'],
             ':due_date' => $data['due_date'],
             ':start_date' => $data['start_date'] ?? date('Y-m-d'),
-            ':priority' => $data['priority']
+            ':priority' => $data['priority'],
+            ':estimated_hours' => $data['estimated_hours'] ?? 0
         ]);
     }
 

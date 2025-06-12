@@ -10,9 +10,11 @@ if (!isset($_SESSION['user_id'])) {
 // Include models
 require_once __DIR__ . '/../models/Task.php';
 require_once __DIR__ . '/../models/Comment.php';
+require_once __DIR__ . '/../models/Project.php';
 
 $taskModel = new Task();
 $commentModel = new Comment();
+$projectModel = new Project();
 
 // Get filter from URL
 $filter = $_GET['filter'] ?? 'all';
@@ -111,45 +113,7 @@ foreach ($tasks as &$task) {
 
     <div class="min-h-screen flex">
         <!-- Sidebar -->
-        <div class="w-64 glass-effect shadow-xl">
-            <div class="p-6">
-                <div class="flex items-center mb-8">
-                    <i class="fas fa-tasks text-2xl text-white mr-3"></i>
-                    <h1 class="text-xl font-bold text-white">TaskFlow</h1>
-                </div>
-                
-                <div class="mb-6">
-                    <div class="text-white/80 text-sm mb-2">Bem-vindo,</div>
-                    <div class="text-white font-semibold"><?php echo htmlspecialchars($_SESSION['username']); ?></div>
-                </div>
-
-                <nav class="space-y-2">
-                    <a href="?filter=all" class="flex items-center px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors <?php echo $filter === 'all' ? 'bg-white/20 text-white' : ''; ?>">
-                        <i class="fas fa-list mr-3"></i>
-                        Todas as Tarefas
-                    </a>
-                    <a href="?filter=today" class="flex items-center px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors <?php echo $filter === 'today' ? 'bg-white/20 text-white' : ''; ?>">
-                        <i class="fas fa-calendar-day mr-3"></i>
-                        Hoje
-                    </a>
-                    <a href="?filter=this_week" class="flex items-center px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors <?php echo $filter === 'this_week' ? 'bg-white/20 text-white' : ''; ?>">
-                        <i class="fas fa-calendar-week mr-3"></i>
-                        Esta Semana
-                    </a>
-                    <a href="?filter=important" class="flex items-center px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors <?php echo $filter === 'important' ? 'bg-white/20 text-white' : ''; ?>">
-                        <i class="fas fa-exclamation-triangle mr-3"></i>
-                        Importantes
-                    </a>
-                </nav>
-
-                <div class="mt-8 pt-8 border-t border-white/20">
-                    <a href="../public/login.php?logout=1" class="flex items-center px-4 py-3 text-white/80 hover:text-white hover:bg-red-500/20 rounded-lg transition-colors">
-                        <i class="fas fa-sign-out-alt mr-3"></i>
-                        Sair
-                    </a>
-                </div>
-            </div>
-        </div>
+        <?php include 'sidebar.php'; ?>
 
         <!-- Main Content -->
         <div class="flex-1 flex flex-col">
@@ -285,6 +249,18 @@ foreach ($tasks as &$task) {
                                   placeholder="Digite a descrição da tarefa"></textarea>
                     </div>
                     
+                    <div class="mb-4">
+                        <label for="task-project" class="block text-sm font-medium text-white mb-2">Projeto</label>
+                        <select id="task-project" name="project_id" required
+                                class="w-full px-3 py-2 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/50">
+                            <?php
+                            $projects = $projectModel->getAllUserProjects($_SESSION['user_id']);
+                            foreach ($projects as $project): ?>
+                                <option value="<?php echo $project['id']; ?>"><?php echo htmlspecialchars($project['name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-4 mb-6">
                         <div>
                             <label for="task-date" class="block text-sm font-medium text-white mb-2">Data de Vencimento</label>

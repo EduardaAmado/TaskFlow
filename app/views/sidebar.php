@@ -32,6 +32,32 @@ $currentPage = basename($_SERVER['PHP_SELF'], '.php');
                 Dashboard
             </a>
             
+            <a href="../public/projects.php" 
+               class="flex items-center px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors <?php echo $currentPage === 'projects' ? 'bg-white/20 text-white' : ''; ?>">
+                <i class="fas fa-folder mr-3"></i>
+                Projetos
+            </a>
+            
+            <a href="../public/gantt.php" 
+               class="flex items-center px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors <?php echo $currentPage === 'gantt' ? 'bg-white/20 text-white' : ''; ?>">
+                <i class="fas fa-chart-gantt mr-3"></i>
+                Cronograma Geral
+            </a>
+            
+            <a href="../public/statistics.php" 
+               class="flex items-center px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors <?php echo $currentPage === 'statistics' ? 'bg-white/20 text-white' : ''; ?>">
+                <i class="fas fa-chart-bar mr-3"></i>
+                Estatísticas
+            </a>
+            
+            <a href="../public/preferences.php" 
+               class="flex items-center px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors <?php echo $currentPage === 'preferences' ? 'bg-white/20 text-white' : ''; ?>">
+                <i class="fas fa-cog mr-3"></i>
+                Configurações
+            </a>
+            
+            <div class="border-t border-white/20 my-4"></div>
+            
             <a href="../public/dashboard.php?filter=today" 
                class="flex items-center px-4 py-3 text-white/80 hover:text-white hover:bg-white/10 rounded-lg transition-colors <?php echo isset($_GET['filter']) && $_GET['filter'] === 'today' ? 'bg-white/20 text-white' : ''; ?>">
                 <i class="fas fa-calendar-day mr-3"></i>
