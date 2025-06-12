@@ -273,7 +273,7 @@ Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalh
 
 ## 👥 Autores
 
-- **Seu Nome** - *Desenvolvimento inicial* - [SeuGitHub](https://github.com/seu-usuario)
+- **SMaria Eduarda Ferreira Amado** - *Desenvolvimento inicial* - https://github.com/EduardaAmado/
 
 ## 🙏 Agradecimentos
 
